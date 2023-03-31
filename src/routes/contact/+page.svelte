@@ -2,7 +2,7 @@
 	import { base } from '$app/paths';
 	import Header from '$lib/components/organisms/Header.svelte';
 	import Footer from '$lib/components/organisms/Footer.svelte';
-	import Button from '$lib/components/atoms/Button.svelte';
+	// import Button from '$lib/components/atoms/Button.svelte';
 </script>
 
 <Header />
@@ -15,19 +15,6 @@
         <h1 class="display-large">Stavanger HEMA - Allheim</h1>
 
         <h2 class="headline-large">Rogalands most consistent HEMA club!</h2>
-
-        <div class="space-x-6">
-			<a href="{base}/schedule">
-				<Button>
-					<p>Plan Your Visits!</p>
-				</Button>
-			</a>
-			<a href="{base}/about">
-				<Button>
-					<p>Who Are We?</p>
-				</Button>
-			</a>
-		</div>
     </div>
 </main>
 
