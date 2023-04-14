@@ -7,15 +7,14 @@
 
 <Header />
 
-
 <main
 	class="py-20 px-4 border-b shadow-2xl sm:px-6 md:px-8 border-primary-light/40 dark:border-primary-dark/40"
 >
-    <div class="grid justify-items-center space-y-12 mx-auto">
-        <h1 class="display-large">Pricing</h1>
+	<div class="grid justify-items-center space-y-12 mx-auto">
+		<h1 class="display-large">Pricing</h1>
 
-        <h2 class="headline-large">Stavanger HEMA - Allheim</h2>
-    </div>
+		<h2 class="headline-large">Stavanger HEMA - Allheim</h2>
+	</div>
 </main>
 
 <div class="grid h-full w-full justify-center place-items-center">
