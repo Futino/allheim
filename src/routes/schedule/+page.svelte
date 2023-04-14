@@ -6,12 +6,15 @@
 	import type { Database } from '$lib/database.types';
 
 	import { createClient } from '@supabase/supabase-js';
+	import { onMount } from 'svelte';
 
+	// Create a Supabase client object
 	const supabase = createClient<Database>(
 		'https://ekushmqbxanusqyxyzkk.supabase.co',
 		'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVrdXNobXFieGFudXNxeXh5emtrIiwicm9sZSI6ImFub24iLCJpYXQiOjE2ODEzODQ1NzMsImV4cCI6MTk5Njk2MDU3M30.RTlWWjf6n2PCDkMdN43B0lBjsXe_aEIfTIs2bDCxfSE'
 	);
 
+	// Define arrays for months, days, and weekdays
 	const months = [
 		'January',
 		'February',
@@ -26,7 +29,10 @@
 		'November',
 		'December'
 	];
+	const days = ['Sunday', 'Monday', 'Tuesday', 'Wednessday', 'Thursday', 'Friday', 'Saturday'];
+	const weekdays = [3, 5]; // Specify weeks to include
 
+	// Define a mapping of month abbreviations to numbers
 	const monthToNumber: { [key: string]: number } = {
 		Jan: 0,
 		Feb: 1,
@@ -42,15 +48,40 @@
 		Dec: 11
 	};
 
-	const days = ['Sunday', 'Monday', 'Tuesday', 'Wednessday', 'Thursday', 'Friday', 'Saturday'];
 
-	// Custom
-	const numWeeks = 24;
-	const weekdays = [3, 5];
+	// Define custom variables for the number of weeks, weekdays, and time
+	const numWeeks = 12;
 	const time = '19:00 - 21:00';
 
 	let weeks: { day: string; month: number; date: number }[][] = [];
 
+	let name: string = "";
+
+	onMount(async () => {
+		name = localStorage.getItem("name") ? <string>localStorage.getItem("name") : name;
+		(<HTMLInputElement>document.getElementById('name')).value = name;
+	})
+
+	function saveName(_name: string) {
+		localStorage.setItem("name", _name);
+		name = _name;
+
+		(<HTMLInputElement>document.getElementById('name')).value = name;
+	}
+
+	function readName() {
+		let _name = (<HTMLInputElement>document.getElementById('name')).value;
+		if (!_name) {
+			alert("Please enter a valid name.")
+			return false;
+		}
+		saveName(_name);
+
+		return true;
+	}
+
+
+	// Create an array of weeks, each containing an array of days
 	for (let w = 0; w < numWeeks; ++w) {
 		let week: { day: string; month: number; date: number }[] = [];
 
@@ -69,6 +100,7 @@
 		weeks.push(week);
 	}
 
+	// Define a function to get the list of attendees for a given month and day
 	async function getAttending(
 		Attendance: Database['public']['Tables']['Attendance']['Row'][],
 		month: number,
@@ -84,24 +116,66 @@
 		return attending;
 	}
 
-	function register() {
-		let name = <HTMLInputElement>document.getElementById('name');
+	// Define a function to get the list of checked sessions
+	function getCheckedSessions() {
+		let checkedSessions: { "m": number; "d": number }[] = [];
 
 		for (let week = 0; week < weeks.length; ++week) {
 			for (let weekday = 0; weekday < weekdays.length; ++weekday) {
-				console.log(
-					`session${weeks[week][weekday].month.toString()}${weeks[week][weekday].date.toString()}`
-				);
 				let session = <HTMLInputElement>(
 					document.getElementById(
-						`session${weeks[week][weekday].month.toString()}${weeks[week][weekday].date.toString()}`
+						`session-${weeks[week][weekday].month.toString()}|${weeks[week][weekday].date.toString()}`
 					)
 				);
-				console.log(session.checked);
+				
+				let date = session.id.split('-')[1].split('|');
+				if (session.checked)
+					checkedSessions.push({"m": parseInt(date[0]), "d": parseInt(date[1])});
 			}
 		}
+		return checkedSessions;
 	}
-	function unregister() {}
+
+	// Define a function to register attendance for the selected sessions
+	async function register() {
+		if (!readName()) return; // Read name, return if invalid
+		
+		let checkedSessions = getCheckedSessions();
+
+		for (let i = 0; i < checkedSessions.length; ++i) {
+			await supabase
+				.from('Attendance')
+				.insert([
+					{
+						name: name,
+						month: checkedSessions[i].m,
+						day: checkedSessions[i].d,
+					}
+				]);
+		}
+		location.reload();
+		return false;
+	}
+
+	// Define a function to unregister attendance for the selected sessions
+	async function unregister() {
+		if (!readName()) return; // Read name, return if invalid
+
+		let checkedSessions = getCheckedSessions();
+
+		// Loop over the checkedSessions array
+		for (let i = 0; i < checkedSessions.length; ++i) {
+			// Delete rows from the Attendance table where name, month, and day match
+			console.log(await supabase
+				.from('Attendance')
+				.delete()
+				.eq('name', name)
+				.eq('month', checkedSessions[i].m)
+				.eq('day', checkedSessions[i].d));
+		}
+		location.reload();
+		return false;
+	}
 </script>
 
 <Header />
@@ -135,6 +209,7 @@
 		</button>
 
 		<button
+		on:click={unregister}
 			id="unregister"
 			class="p-5 shadow-lg rounded-lg text-center bg-secondary-light dark:bg-secondary-dark text-secondary-on-light dark:text-secondary-on-dark display-small"
 		>
@@ -159,7 +234,7 @@
 						<label
 							class="h-full w-full p-3 shadow-lg rounded-lg text-center bg-secondary-light dark:bg-secondary-dark text-secondary-on-light dark:text-secondary-on-dark"
 						>
-							<input id="session{month}{date}" type="checkbox" class="w-10 h-10" />
+							<input id="session-{month}|{date}" type="checkbox" class="w-10 h-10" />
 							<p class="headline-large">{day}</p>
 							<p class="display-large lg:display-medium">{months[month].substring(0, 3)}. {date}</p>
 							<p class="title-large">{time}</p>
