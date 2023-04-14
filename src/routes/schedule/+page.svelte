@@ -186,8 +186,8 @@
 	<div class="grid justify-items-center space-y-12 mx-auto">
 		<h1 class="display-large">Schedule</h1>
 		<h2 class="headline-large text-center">
-			Please enter your name and click the sessions you want to join.<br />After that click the
-			"Register" button or click "Unregister" to unregister from them.
+			Please enter your name and select sessions.<br />
+			After that click the "Register" button or click "Unregister" to unregister from them.
 		</h2>
 
 		<input
